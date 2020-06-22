@@ -1,8 +1,23 @@
 {
-  "name": "react-mounting-transition",
+  "name": "@ricokahler/react-mounting-transition",
   "version": "0.1.0",
-  "description": "",
+  "description": "`react-mounting-transition` is a simple lib to help you add transitions to components you dynamically mount to the DOM",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ricokahler/react-mounting-transition.git"
+  },
+  "license": "MIT",
+  "author": {
+    "email": "ricokahler@me.com",
+    "name": "Rico Kahler",
+    "url": "https://github.com/ricokahler"
+  },
   "main": "index.js",
+  "scripts": {
+    "build": "node ./scripts/build",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "use-pull": "^1.0.0"
   },
@@ -31,12 +46,5 @@
     "react-dom": "^16.13.1",
     "rollup": "^2.18.0",
     "typescript": "^3.9.5"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
-    "build": "node ./scripts/build"
-  },
-  "author": "",
-  "license": "MIT"
+  }
 }

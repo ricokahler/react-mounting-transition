@@ -44,7 +44,10 @@ interface Props {
    * This creates a div when the component becomes mounted. A container class
    * must be provided if a portal is desired
    */
-  portal?: { containerClass: string };
+  portal?: {
+    containerClass: string;
+    elementType?: keyof JSX.IntrinsicElements;
+  };
   /**
    * an optional callback that runs when as soon as the component is mounted
    */
@@ -128,16 +131,17 @@ function MountingTransition({
   }, [show, getOnMount, geOnUnmount]);
 
   const portalClassName = portal?.containerClass;
+  const portalElementType = portal?.elementType || 'div';
 
   const container = useMemo(() => {
     if (!portalClassName || !show) {
       return null;
     }
 
-    const div = document.createElement('div');
+    const div = document.createElement(portalElementType);
     div.classList.add(portalClassName);
     return div;
-  }, [show, portalClassName]);
+  }, [show, portalClassName, portalElementType]);
 
   useEffect(() => {
     if (!container) {
