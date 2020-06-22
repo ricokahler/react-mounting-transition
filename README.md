@@ -2,6 +2,8 @@
 
 > `react-mounting-transition` is a simple lib to help you add transitions to components you dynamically mount to the DOM
 
+> ⚠️ this lib is still in development and needs a bit of polish
+
 ## Why is this necessary?
 
 Certain elements are better dynamically added to the DOM on-demand. A good example of this would be the modal.
@@ -30,7 +32,7 @@ yarn add @ricokahler/react-mounting-transition
 ```tsx
 import React, { useEffect, useRef } from 'react';
 import classNames from 'classnames';
-import MountingTransition from 'components/mounting-transition';
+import MountingTransition from '@ricokahler/mounting-transition';
 
 interface Props {
   open: boolean;
