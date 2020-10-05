@@ -1,6 +1,6 @@
 {
   "name": "@ricokahler/react-mounting-transition",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "`react-mounting-transition` is a simple lib to help you add transitions to components you dynamically mount to the DOM",
   "repository": {
     "type": "git",
