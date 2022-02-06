@@ -6,7 +6,7 @@
 
 ## Why is this necessary?
 
-Certain elements are better dynamically added to the DOM on-demand. A good example of this would be the modal.
+Certain elements are better dynamically added to the DOM on-demand. A good example of this would be a modal.
 
 1. When the modal is opened, it's best to create a brand new containing div and add it to the DOM to avoid z-index issues.
 2. For performance reasons, it's good to add the modal elements only when the modal is open to reduce the amount of elements on the first paint.
@@ -19,12 +19,6 @@ You can think of this lib as a simpler alternative to `react-transition-group` w
 
 ```
 npm i @ricokahler/react-mounting-transition
-```
-
-or
-
-```
-yarn add @ricokahler/react-mounting-transition
 ```
 
 ### Usage
