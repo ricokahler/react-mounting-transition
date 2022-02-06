@@ -79,7 +79,7 @@ export function MountingTransition({
   portal,
   onMount,
   onUnmount,
-}: Props) {
+}: Props): JSX.Element | null {
   // entering, active, exiting, inactive
   const [state, setState] = useState<TransitionState>(
     mounted ? 'enter-begin' : 'exit-final',
@@ -165,6 +165,6 @@ export function MountingTransition({
   }, [state, show, children]);
 
   if (!child) return null;
-  if (portal) return container && createPortal(child, container);
+  if (portal) return (container && createPortal(child, container)) || null;
   return child;
 }
