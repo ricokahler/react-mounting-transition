@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import usePull from 'use-pull';
+import { useStableValueGetter } from './use-stable-value-getter';
 
 /**
  * Used to create a cancelable delay
@@ -12,7 +12,15 @@ function delay(signal: AbortSignal, timeout: number) {
   });
 }
 
-type TransitionState = 'enter-start' | 'enter-end' | 'exit-start' | 'exit-end';
+function animationFrame() {
+  return new Promise((resolve) => requestAnimationFrame(resolve));
+}
+
+type TransitionState =
+  | 'enter-begin'
+  | 'enter-final'
+  | 'exit-begin'
+  | 'exit-final';
 
 interface Props {
   /**
@@ -64,7 +72,7 @@ interface Props {
  * (i.e. active = false), then no DOM element is mounted. This powers the
  * Drawer and Modal components.
  */
-function MountingTransition({
+export function MountingTransition({
   children,
   mounted,
   timeout,
@@ -74,19 +82,21 @@ function MountingTransition({
 }: Props) {
   // entering, active, exiting, inactive
   const [state, setState] = useState<TransitionState>(
-    mounted ? 'enter-end' : 'exit-end',
+    mounted ? 'enter-begin' : 'exit-final',
   );
   const [show, setShow] = useState(mounted);
 
   useEffect(() => {
     if (mounted) {
-      return;
-    }
+      return () => {
+        (async () => {
+          setState('exit-begin');
+          await animationFrame();
 
-    setState('exit-start');
-    requestAnimationFrame(() => {
-      setState('exit-end');
-    });
+          setState('exit-final');
+        })();
+      };
+    }
 
     const abortController = new AbortController();
     delay(abortController.signal, timeout)
@@ -96,47 +106,44 @@ function MountingTransition({
       });
 
     return () => {
-      abortController.abort();
+      (async () => {
+        abortController.abort();
 
-      // Each of these happens one tick after the other. These micro-delays are
-      // required in order to for the CSS transitions to happen correctly.
-      //
-      // 1) First mount the container
-      setShow(true);
-      requestAnimationFrame(() => {
+        // Each of these happens one tick after the other. These micro-delays
+        // are required in order to for the CSS transitions to happen correctly.
+        //
+        // 1) First mount the container
+        setShow(true);
+        await animationFrame();
+
         // 2) Then change the state to `enter-start` briefly
-        setState('enter-start');
-        requestAnimationFrame(() => {
-          // 3) Then change the state to `enter-end`
-          setState('enter-end');
-        });
-      });
+        setState('enter-begin');
+        await animationFrame();
+
+        // 3) Then change the state to `enter-end`
+        setState('enter-final');
+      })();
     };
   }, [mounted, timeout]);
 
   // we don't want to react to change to `onMount` or `onUnmount` so we wrap
-  // with use-pull
-  const getOnMount = usePull(onMount);
-  const geOnUnmount = usePull(onUnmount);
+  // with use-stable-value-getter
+  const getOnMount = useStableValueGetter(onMount);
+  const geOnUnmount = useStableValueGetter(onUnmount);
 
   useEffect(() => {
     const onMount = getOnMount();
     const onUnmount = geOnUnmount();
 
-    if (show) {
-      onMount && onMount();
-    } else {
-      onUnmount && onUnmount();
-    }
+    if (show) onMount?.();
+    else onUnmount?.();
   }, [show, getOnMount, geOnUnmount]);
 
   const portalClassName = portal?.containerClass;
   const portalElementType = portal?.elementType || 'div';
 
   const container = useMemo(() => {
-    if (!portalClassName || !show) {
-      return null;
-    }
+    if (!portalClassName || !show) return;
 
     const div = document.createElement(portalElementType);
     div.classList.add(portalClassName);
@@ -144,9 +151,7 @@ function MountingTransition({
   }, [show, portalClassName, portalElementType]);
 
   useEffect(() => {
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     document.body.appendChild(container);
     return () => {
@@ -154,21 +159,12 @@ function MountingTransition({
     };
   }, [container]);
 
-  if (!show) {
-    return null;
-  }
+  const child = useMemo(() => {
+    if (!show) return null;
+    return children({ state, active: state === 'enter-final' });
+  }, [state, show, children]);
 
-  if (portal) {
-    return (
-      container &&
-      createPortal(
-        children({ state, active: state === 'enter-end' }),
-        container,
-      )
-    );
-  }
-
-  return children({ state, active: state === 'enter-end' });
+  if (!child) return null;
+  if (portal) return container && createPortal(child, container);
+  return child;
 }
-
-export default MountingTransition;
